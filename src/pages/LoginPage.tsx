@@ -5,6 +5,7 @@ import { ShieldCheck } from 'lucide-react';
 
 import { api } from '../api/client';
 import { getAccessToken } from '../api/http';
+import { hasRoleValue, isAdminRole } from '../lib/auth';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -22,12 +23,18 @@ export function LoginPage() {
   });
 
   useEffect(() => {
-    if (sessionQuery.data?.role === 'admin') {
+    if (isAdminRole(sessionQuery.data?.role)) {
       navigate('/painel', { replace: true });
       return;
     }
 
-    if (sessionQuery.data && sessionQuery.data.role !== 'admin') {
+    if (sessionQuery.data && !hasRoleValue(sessionQuery.data.role)) {
+      api.auth.logout();
+      setError('Conta autenticada sem perfil de acesso (role). Contate o suporte.');
+      return;
+    }
+
+    if (sessionQuery.data && !isAdminRole(sessionQuery.data.role)) {
       api.auth.logout();
       setError('Sua conta não possui permissão de administrador.');
     }
@@ -42,7 +49,13 @@ export function LoginPage() {
       await api.auth.login({ email, password });
       const me = await api.auth.me();
 
-      if (me.role !== 'admin') {
+      if (!hasRoleValue(me.role)) {
+        await api.auth.logout();
+        setError('Conta autenticada sem perfil de acesso (role). Contate o suporte.');
+        return;
+      }
+
+      if (!isAdminRole(me.role)) {
         await api.auth.logout();
         setError('Conta autenticada, mas sem perfil admin.');
         return;

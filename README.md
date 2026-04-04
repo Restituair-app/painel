@@ -46,6 +46,22 @@ npm run dev
 
 O painel sobe por padrão em `http://localhost:5174`.
 
+## Deploy na Vercel
+
+Este projeto já está preparado com `vercel.json` para:
+
+- build via `npm run build`
+- saída em `dist`
+- rewrite da API `/api/v1/*` para `https://api.restitua.com/api/v1/*`
+- fallback SPA para rotas como `/login` e `/painel`
+
+No painel da Vercel:
+
+1. Importe o repositório.
+2. Defina `Root Directory` como `painel`.
+3. Framework: `Vite` (detectado automaticamente).
+4. Deploy.
+
 ## Requisito no backend (CORS)
 
 No backend, garanta que `CORS_ORIGIN` contenha a origem do painel admin também.

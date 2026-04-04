@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import { api } from '../api/client';
+import { hasRoleValue, isAdminRole } from '../lib/auth';
 import { LoadingScreen } from './LoadingScreen';
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -19,13 +20,17 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (data.role !== 'admin') {
+  const hasRole = hasRoleValue(data.role);
+
+  if (!isAdminRole(data.role)) {
     return (
       <div className="screen-centered page-padding">
         <section className="card warning-card">
           <h1>Acesso negado</h1>
           <p className="muted-text">
-            Sua conta está autenticada, mas não possui perfil de administrador.
+            {hasRole
+              ? 'Sua conta está autenticada, mas não possui perfil de administrador.'
+              : 'Sua conta está autenticada, mas não possui valor no campo role.'}
           </p>
           <button
             className="btn btn-primary"
