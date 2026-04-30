@@ -19,7 +19,8 @@ type RequestOptions = {
   retryOnAuthFailure?: boolean;
 };
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
+// const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
+const API_BASE_URL = 'https://api.restitua.com/api/v1'
 const ACCESS_TOKEN_KEY = 'restitua_admin_access_token';
 const REFRESH_TOKEN_KEY = 'restitua_admin_refresh_token';
 
@@ -132,6 +133,9 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
   } = options;
 
   const url = new URL(`${resolveApiBaseUrl()}${path}`);
+  console.log({
+    url,
+  })
 
   if (query) {
     Object.entries(query).forEach(([key, value]) => {
@@ -153,6 +157,7 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
   if (auth && accessToken) {
     requestHeaders.Authorization = `Bearer ${accessToken}`;
   }
+  
 
   const response = await fetch(url.toString(), {
     method,
