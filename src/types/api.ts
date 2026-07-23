@@ -11,6 +11,10 @@ export type AuthUser = {
   cadastro_completo: boolean;
   role: UserRole;
   isActive: boolean;
+  isPremium?: boolean;
+  premiumPlan?: string | null;
+  premiumSince?: string | null;
+  premiumExpiresAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
   created_date?: string;
@@ -102,6 +106,42 @@ export type AdminOverview = {
 
 export type UsersListResponse = {
   items: AuthUser[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+export type AdminUserFilters = {
+  page: number;
+  limit: number;
+  search?: string;
+  role?: UserRole;
+  isPremium?: 'true' | 'false';
+  startDate?: string;
+  endDate?: string;
+};
+
+export type AppReviewReply = {
+  message: string;
+  sentAt: string;
+  sentBy: string;
+};
+
+export type AppReview = {
+  id: string;
+  userId: string;
+  email: string;
+  rating: number;
+  comment?: string | null;
+  source: 'mobile_app';
+  tags: string[];
+  replies: AppReviewReply[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AppReviewsListResponse = {
+  items: AppReview[];
   total: number;
   page: number;
   limit: number;

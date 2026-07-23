@@ -19,6 +19,11 @@ type RequestOptions = {
   retryOnAuthFailure?: boolean;
 };
 
+type BlobResponse = {
+  blob: Blob;
+  fileName?: string;
+};
+
 // const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
 const API_BASE_URL = 'https://api.restitua.com/api/v1'
 const ACCESS_TOKEN_KEY = 'restitua_admin_access_token';
@@ -133,9 +138,6 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
   } = options;
 
   const url = new URL(`${resolveApiBaseUrl()}${path}`);
-  console.log({
-    url,
-  })
 
   if (query) {
     Object.entries(query).forEach(([key, value]) => {
@@ -179,4 +181,65 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
   }
 
   return data as T;
+};
+
+export const requestBlob = async (path: string, options: RequestOptions = {}): Promise<BlobResponse> => {
+  const {
+    method = 'GET',
+    body,
+    query,
+    headers = {},
+    auth = true,
+    retryOnAuthFailure = true,
+  } = options;
+
+  const url = new URL(`${resolveApiBaseUrl()}${path}`);
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') {
+        return;
+      }
+      url.searchParams.set(key, String(value));
+    });
+  }
+
+  const requestHeaders: Record<string, string> = {
+    ...headers,
+  };
+
+  if (body !== undefined) {
+    requestHeaders['Content-Type'] = 'application/json';
+  }
+
+  if (auth && accessToken) {
+    requestHeaders.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const response = await fetch(url.toString(), {
+    method,
+    headers: requestHeaders,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const data = await safeParse(response);
+
+    if (auth && response.status === 401 && retryOnAuthFailure) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return requestBlob(path, { ...options, retryOnAuthFailure: false });
+      }
+    }
+
+    throw createError(response.status, data);
+  }
+
+  const disposition = response.headers.get('content-disposition') || '';
+  const fileName = disposition.match(/filename="?([^"]+)"?/i)?.[1];
+
+  return {
+    blob: await response.blob(),
+    fileName,
+  };
 };
