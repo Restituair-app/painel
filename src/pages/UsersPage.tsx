@@ -4,7 +4,7 @@ import { Download, Search, UserCog, UserX } from 'lucide-react';
 
 import { api } from '../api/client';
 import { formatDateBR } from '../lib/format';
-import type { AuthUser } from '../types/api';
+import type { AuthUser, SubscriptionPlan } from '../types/api';
 
 const toErrorMessage = (error: unknown, fallback: string) => {
   if (typeof error === 'object' && error && 'message' in error) {
@@ -26,6 +26,20 @@ const downloadFile = (blob: Blob, fileName: string) => {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+};
+
+const getUserPlan = (user: Pick<AuthUser, 'isPremium' | 'premiumPlan'>): SubscriptionPlan => {
+  if (!user.isPremium) {
+    return 'free';
+  }
+
+  return user.premiumPlan === 'basic' ? 'basic' : 'premium';
+};
+
+const planLabel: Record<SubscriptionPlan, string> = {
+  free: 'Free',
+  basic: 'Basic',
+  premium: 'Premium',
 };
 
 export function UsersPage() {
@@ -101,6 +115,21 @@ export function UsersPage() {
     },
   });
 
+  const updateUserPlanMutation = useMutation({
+    mutationFn: (args: { id: string; plan: SubscriptionPlan }) =>
+      api.admin.updateUserPlan(args.id, { plan: args.plan }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-overview'] });
+    },
+    onError: (error) => {
+      window.alert(toErrorMessage(error, 'Não foi possível atualizar o plano do usuário.'));
+    },
+    onSettled: () => {
+      setBusyUserId(null);
+    },
+  });
+
   const deleteUserMutation = useMutation({
     mutationFn: (id: string) => api.admin.deleteUser(id),
     onSuccess: () => {
@@ -135,7 +164,7 @@ export function UsersPage() {
   const usersTotal = usersQuery.data?.total ?? 0;
   const usersLimit = usersQuery.data?.limit ?? 10;
   const usersTotalPages = Math.max(1, Math.ceil(usersTotal / usersLimit));
-  const isBusyAction = updateUserMutation.isPending || deleteUserMutation.isPending;
+  const isBusyAction = updateUserMutation.isPending || updateUserPlanMutation.isPending || deleteUserMutation.isPending;
   const canExport = exportAll || (Boolean(exportStartDate) && Boolean(exportEndDate));
 
   const handleToggleRole = (user: Pick<AuthUser, 'id' | 'role' | 'email'>) => {
@@ -161,6 +190,14 @@ export function UsersPage() {
     updateUserMutation.mutate({
       id: user.id,
       isActive: !user.isActive,
+    });
+  };
+
+  const handlePlanChange = (user: Pick<AuthUser, 'id'>, plan: SubscriptionPlan) => {
+    setBusyUserId(user.id);
+    updateUserPlanMutation.mutate({
+      id: user.id,
+      plan,
     });
   };
 
@@ -271,11 +308,11 @@ export function UsersPage() {
             </label>
 
             <label className="select-inline" aria-label="Filtrar por premium">
-              <span>Premium</span>
+              <span>Plano</span>
               <select value={premiumFilter} onChange={(event) => setPremiumFilter(event.target.value as 'all' | 'premium' | 'free')}>
                 <option value="all">Todos</option>
-                <option value="premium">Premium</option>
-                <option value="free">Não premium</option>
+                <option value="premium">Plano pago</option>
+                <option value="free">Free</option>
               </select>
             </label>
           </div>
@@ -290,7 +327,7 @@ export function UsersPage() {
                 <th>CPF</th>
                 <th>Celular</th>
                 <th>Perfil</th>
-                <th>Premium</th>
+                <th>Plano</th>
                 <th>Status</th>
                 <th>Cadastro</th>
                 <th>Criado em</th>
@@ -311,9 +348,17 @@ export function UsersPage() {
                       <span className={`pill ${user.role === 'admin' ? 'pill-admin' : 'pill-user'}`}>{user.role}</span>
                     </td>
                     <td>
-                      <span className={user.isPremium ? 'status-active' : 'status-inactive'}>
-                        {user.isPremium ? 'Premium' : 'Não'}
-                      </span>
+                      <select
+                        className={`plan-select plan-select-${getUserPlan(user)}`}
+                        value={getUserPlan(user)}
+                        onChange={(event) => handlePlanChange({ id: user.id }, event.target.value as SubscriptionPlan)}
+                        disabled={isBusy}
+                        aria-label={`Plano de ${user.email}`}
+                      >
+                        <option value="free">{planLabel.free}</option>
+                        <option value="basic">{planLabel.basic}</option>
+                        <option value="premium">{planLabel.premium}</option>
+                      </select>
                     </td>
                     <td>
                       <span className={user.isActive ? 'status-active' : 'status-inactive'}>

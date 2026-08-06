@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'user';
+export type SubscriptionPlan = 'free' | 'basic' | 'premium';
 
 export type AuthUser = {
   id: string;

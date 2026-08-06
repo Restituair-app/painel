@@ -38,6 +38,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   farmacia: 'Farmácia',
   estetica_beleza: 'Estética / Beleza',
   lazer_diversao: 'Lazer / Diversão',
+  eletronicos: 'Eletrônicos',
   outros: 'Outros',
 };
 
@@ -57,6 +58,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   farmacia: '#84cc16',
   estetica_beleza: '#fb7185',
   lazer_diversao: '#38bdf8',
+  eletronicos: '#64748b',
   outros: '#64748b',
 };
 

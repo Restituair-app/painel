@@ -4,6 +4,7 @@ import type {
   AppReviewsListResponse,
   AuthUser,
   LoginResponse,
+  SubscriptionPlan,
   UsersListResponse,
 } from '../types/api';
 import { clearTokens, request, requestBlob, setTokens } from './http';
@@ -61,6 +62,13 @@ export const api = {
 
     updateUser(id: string, payload: { role?: 'admin' | 'user'; isActive?: boolean }) {
       return request<AuthUser>(`/users/${id}`, {
+        method: 'PATCH',
+        body: payload,
+      });
+    },
+
+    updateUserPlan(id: string, payload: { plan: SubscriptionPlan }) {
+      return request<AuthUser>(`/admin/painel/users/${id}/plan`, {
         method: 'PATCH',
         body: payload,
       });
