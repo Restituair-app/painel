@@ -147,3 +147,92 @@ export type AppReviewsListResponse = {
   page: number;
   limit: number;
 };
+
+export type LegalModel = {
+  id: string;
+  title: string;
+  description: string;
+  fileUrl: string;
+  fileKey: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  isActive: boolean;
+  createdBy: string;
+  updatedBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  expiresInSeconds?: number | null;
+};
+
+export type AuditTicketStatus = 'pendente' | 'em_analise' | 'concluido';
+
+export type AuditTicket = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName?: string | null;
+  status: AuditTicketStatus;
+  requestedAt: string;
+  analysisStartedAt?: string | null;
+  completedAt?: string | null;
+  analysisRangeStart?: string | null;
+  analysisRangeEnd?: string | null;
+  reportUrl?: string | null;
+  reportKey?: string | null;
+  reportFileName?: string | null;
+  reportMimeType?: string | null;
+  reportSize?: number | null;
+  observations?: string | null;
+  handledBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  expiresInSeconds?: number | null;
+};
+
+export type AuditNotaFiscal = {
+  id: string;
+  created_by: string;
+  estabelecimento?: string | null;
+  cnpj?: string | null;
+  valor_total: number;
+  data_emissao: string;
+  categoria: string;
+  imagem_url?: string | null;
+  numero_nota?: string | null;
+  itens?: Array<{
+    descricao?: string | null;
+    quantidade?: number | null;
+    valor_unitario?: number | null;
+    valor_total?: number | null;
+  }>;
+  observacoes?: string | null;
+  memoria_url?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SupportTicketStatus = 'nao_respondido' | 'em_curso' | 'finalizado';
+
+export type SupportMessage = {
+  sender: 'user' | 'admin';
+  senderEmail: string;
+  body: string;
+  createdAt: string;
+};
+
+export type SupportTicket = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName?: string | null;
+  status: SupportTicketStatus;
+  messages: SupportMessage[];
+  lastMessageAt: string;
+  firstRespondedAt?: string | null;
+  finalizedAt?: string | null;
+  finalizedBy?: string | null;
+  handledBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

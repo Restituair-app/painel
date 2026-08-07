@@ -19,6 +19,10 @@ type RequestOptions = {
   retryOnAuthFailure?: boolean;
 };
 
+type FormRequestOptions = Omit<RequestOptions, 'body'> & {
+  body: FormData;
+};
+
 type BlobResponse = {
   blob: Blob;
   fileName?: string;
@@ -242,4 +246,55 @@ export const requestBlob = async (path: string, options: RequestOptions = {}): P
     blob: await response.blob(),
     fileName,
   };
+};
+
+export const requestFormData = async <T>(path: string, options: FormRequestOptions): Promise<T> => {
+  const {
+    method = 'POST',
+    body,
+    query,
+    headers = {},
+    auth = true,
+    retryOnAuthFailure = true,
+  } = options;
+
+  const url = new URL(`${resolveApiBaseUrl()}${path}`);
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') {
+        return;
+      }
+      url.searchParams.set(key, String(value));
+    });
+  }
+
+  const requestHeaders: Record<string, string> = {
+    ...headers,
+  };
+
+  if (auth && accessToken) {
+    requestHeaders.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const response = await fetch(url.toString(), {
+    method,
+    headers: requestHeaders,
+    body,
+  });
+
+  const data = await safeParse(response);
+
+  if (!response.ok) {
+    if (auth && response.status === 401 && retryOnAuthFailure) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return requestFormData<T>(path, { ...options, retryOnAuthFailure: false });
+      }
+    }
+
+    throw createError(response.status, data);
+  }
+
+  return data as T;
 };
