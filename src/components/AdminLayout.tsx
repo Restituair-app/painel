@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { BarChart3, FileSearch, FileText, LogOut, MessageCircle, MessageSquareText, Users } from 'lucide-react';
+import { BarChart3, CreditCard, FileSearch, FileText, LogOut, MessageCircle, MessageSquareText, Users } from 'lucide-react';
 
 import { api } from '../api/client';
 
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/painel/modelos-juridicos', label: 'Modelo de Requerimentos', icon: FileText },
   { to: '/painel/auditorias', label: 'Auditorias', icon: FileSearch },
   { to: '/painel/suporte', label: 'Suporte', icon: MessageCircle },
+  { to: '/painel/pagamentos', label: 'Pagamentos', icon: CreditCard },
 ];
 
 export function AdminLayout() {

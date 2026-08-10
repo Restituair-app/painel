@@ -9,6 +9,7 @@ import { LegalModelsPage } from './pages/LegalModelsPage';
 import { AuditTicketsPage } from './pages/AuditTicketsPage';
 import { SupportTicketsPage } from './pages/SupportTicketsPage';
 import { UsersPage } from './pages/UsersPage';
+import { PaymentsPage } from './pages/PaymentsPage';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="modelos-juridicos" element={<LegalModelsPage />} />
         <Route path="auditorias" element={<AuditTicketsPage />} />
         <Route path="suporte" element={<SupportTicketsPage />} />
+        <Route path="pagamentos" element={<PaymentsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/painel" replace />} />
     </Routes>

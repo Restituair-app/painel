@@ -236,3 +236,66 @@ export type SupportTicket = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type BillingOverview = {
+  activeSubscriptions: number;
+  pendingTransactions: number;
+  failedTransactions: number;
+  totalCoupons: number;
+  recentWebhooks: number;
+};
+
+export type BillingTransaction = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  plan: 'basic' | 'premium';
+  provider: string;
+  status: string;
+  amount: number;
+  discountedAmount: number;
+  couponCode?: string | null;
+  providerCheckoutId?: string | null;
+  providerSubscriptionId?: string | null;
+  providerCustomerId?: string | null;
+  checkoutUrl?: string | null;
+  event?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BillingCoupon = {
+  id: string;
+  code: string;
+  discountKind: 'PERCENTAGE' | 'FIXED';
+  discount: number;
+  maxRedemptions: number;
+  redeemedCount: number;
+  isActive: boolean;
+  expiresAt?: string | null;
+  providerCouponId?: string | null;
+  useProviderCoupon: boolean;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BillingWebhookLog = {
+  id: string;
+  provider: string;
+  event: string;
+  externalEventId?: string | null;
+  signatureValid: boolean;
+  processed: boolean;
+  processingStatus?: string | null;
+  errorMessage?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+};

@@ -6,11 +6,16 @@ import type {
   AuditTicketStatus,
   AppReviewsListResponse,
   AuthUser,
+  BillingCoupon,
+  BillingOverview,
+  BillingTransaction,
+  BillingWebhookLog,
   LegalModel,
   LoginResponse,
   SubscriptionPlan,
   SupportTicket,
   SupportTicketStatus,
+  PaginatedResponse,
   UsersListResponse,
 } from '../types/api';
 import { clearTokens, request, requestBlob, requestFormData, setTokens } from './http';
@@ -171,6 +176,38 @@ export const api = {
         method: 'POST',
         body: form,
       });
+    },
+
+
+
+    billingOverview() {
+      return request<BillingOverview>('/billing/admin/overview');
+    },
+
+    listBillingTransactions(query: { page: number; limit: number; search?: string; plan?: 'basic' | 'premium'; status?: string }) {
+      return request<PaginatedResponse<BillingTransaction>>('/billing/admin/transactions', { query });
+    },
+
+    listBillingCoupons(query: { page: number; limit: number; search?: string; status?: string }) {
+      return request<PaginatedResponse<BillingCoupon>>('/billing/admin/coupons', { query });
+    },
+
+    createBillingCoupon(payload: { code: string; discountKind: 'PERCENTAGE' | 'FIXED'; discount: number; maxRedemptions?: number; expiresAt?: string; providerCouponId?: string; useProviderCoupon?: boolean; notes?: string }) {
+      return request<BillingCoupon>('/billing/admin/coupons', {
+        method: 'POST',
+        body: payload,
+      });
+    },
+
+    updateBillingCoupon(id: string, payload: Partial<{ code: string; discountKind: 'PERCENTAGE' | 'FIXED'; discount: number; maxRedemptions: number; expiresAt: string; providerCouponId: string; useProviderCoupon: boolean; notes: string; isActive: boolean }>) {
+      return request<BillingCoupon>(`/billing/admin/coupons/${id}`, {
+        method: 'PATCH',
+        body: payload,
+      });
+    },
+
+    listBillingWebhookLogs(query: { page: number; limit: number; search?: string; status?: string }) {
+      return request<PaginatedResponse<BillingWebhookLog>>('/billing/admin/webhook-logs', { query });
     },
 
     listSupportTickets(query: { status?: SupportTicketStatus; search?: string }) {
