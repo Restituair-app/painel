@@ -7,7 +7,7 @@ const navItems = [
   { to: '/painel', label: 'Dashboard', icon: BarChart3, end: true },
   { to: '/painel/usuarios', label: 'Usuários', icon: Users },
   { to: '/painel/avaliacoes', label: 'Avaliações', icon: MessageSquareText },
-  { to: '/painel/modelos-juridicos', label: 'Modelos Jurídicos', icon: FileText },
+  { to: '/painel/modelos-juridicos', label: 'Modelo de Requerimentos', icon: FileText },
   { to: '/painel/auditorias', label: 'Auditorias', icon: FileSearch },
   { to: '/painel/suporte', label: 'Suporte', icon: MessageCircle },
 ];

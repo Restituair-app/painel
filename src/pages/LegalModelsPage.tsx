@@ -55,7 +55,7 @@ export function LegalModelsPage() {
       }
 
       if (!form.file) {
-        throw new Error('Selecione o arquivo do modelo jurídico.');
+        throw new Error('Selecione o arquivo do Modelo de Requerimento.');
       }
 
       return api.admin.createLegalModel({
@@ -71,7 +71,7 @@ export function LegalModelsPage() {
       window.alert(editing ? 'Modelo atualizado com sucesso.' : 'Modelo criado com sucesso.');
     },
     onError: (error) => {
-      window.alert(toErrorMessage(error, 'Não foi possível salvar o modelo jurídico.'));
+      window.alert(toErrorMessage(error, 'Não foi possível salvar o Modelo de Requerimento.'));
     },
   });
 
@@ -82,7 +82,7 @@ export function LegalModelsPage() {
       window.alert('Modelo removido com sucesso.');
     },
     onError: (error) => {
-      window.alert(toErrorMessage(error, 'Não foi possível remover o modelo jurídico.'));
+      window.alert(toErrorMessage(error, 'Não foi possível remover o Modelo de Requerimento.'));
     },
   });
 
@@ -131,7 +131,7 @@ export function LegalModelsPage() {
       <header className="dashboard-header card">
         <div>
           <p className="eyebrow">Premium</p>
-          <h1>Modelos Jurídicos</h1>
+          <h1>Modelo de Requerimentos</h1>
           <p className="muted-text">Cadastre arquivos, títulos e descrições para assinantes Premium.</p>
         </div>
 
@@ -220,7 +220,7 @@ export function LegalModelsPage() {
               <button
                 className="btn btn-danger"
                 onClick={() => {
-                  if (window.confirm('Remover este modelo jurídico?')) {
+                  if (window.confirm('Remover este Modelo de Requerimento?')) {
                     deleteMutation.mutate(model.id);
                   }
                 }}
@@ -235,7 +235,7 @@ export function LegalModelsPage() {
         {!legalModelsQuery.isLoading && sortedModels.length === 0 ? (
           <article className="card empty-card">
             <FileText size={22} />
-            <p>Nenhum modelo jurídico cadastrado ainda.</p>
+            <p>Nenhum Modelo de Requerimento cadastrado ainda.</p>
           </article>
         ) : null}
       </section>
