@@ -105,7 +105,7 @@ export function PaymentsPage() {
         <div>
           <p className="eyebrow">Billing</p>
           <h1>Pagamentos</h1>
-          <p className="muted-text">Monitore assinaturas, cupons, transações e webhooks da Abacate Pay.</p>
+          <p className="muted-text">Monitore assinaturas, cupons, transações e webhooks do provedor de pagamento.</p>
         </div>
       </header>
 
@@ -143,7 +143,7 @@ export function PaymentsPage() {
             <label className="form-field compact-field"><span>Tipo</span><select value={couponForm.discountKind} onChange={(event) => setCouponForm({ ...couponForm, discountKind: event.target.value as 'PERCENTAGE' | 'FIXED' })}><option value="PERCENTAGE">Percentual</option><option value="FIXED">Valor fixo em centavos</option></select></label>
             <label className="form-field compact-field"><span>Desconto</span><input type="number" value={couponForm.discount} onChange={(event) => setCouponForm({ ...couponForm, discount: event.target.value })} /></label>
             <label className="form-field compact-field"><span>Limite</span><input type="number" value={couponForm.maxRedemptions} onChange={(event) => setCouponForm({ ...couponForm, maxRedemptions: event.target.value })} /></label>
-            <label className="checkbox-line"><input type="checkbox" checked={couponForm.useProviderCoupon} onChange={(event) => setCouponForm({ ...couponForm, useProviderCoupon: event.target.checked })} /> Usar cupom nativo Abacate</label>
+            <label className="checkbox-line"><input type="checkbox" checked={couponForm.useProviderCoupon} onChange={(event) => setCouponForm({ ...couponForm, useProviderCoupon: event.target.checked })} /> Usar cupom nativo do provedor</label>
             <button className="btn btn-primary" disabled={createCouponMutation.isPending}>{createCouponMutation.isPending ? 'Criando...' : 'Criar cupom'}</button>
           </form>
         )}
