@@ -10,6 +10,10 @@ import type {
   BillingOverview,
   BillingTransaction,
   BillingWebhookLog,
+  CashbackCoupon,
+  CashbackPrizeCampaign,
+  CashbackWithdrawal,
+  CashbackWithdrawalStatus,
   LegalModel,
   LoginResponse,
   SubscriptionPlan,
@@ -208,6 +212,67 @@ export const api = {
 
     listBillingWebhookLogs(query: { page: number; limit: number; search?: string; status?: string }) {
       return request<PaginatedResponse<BillingWebhookLog>>('/billing/admin/webhook-logs', { query });
+    },
+
+    listCashbackWithdrawals(query: { status?: CashbackWithdrawalStatus; search?: string }) {
+      return request<CashbackWithdrawal[]>('/admin/painel/cashback/withdrawals', { query });
+    },
+
+    startCashbackWithdrawalAnalysis(id: string) {
+      return request<CashbackWithdrawal>(`/admin/painel/cashback/withdrawals/${id}/start-analysis`, {
+        method: 'PATCH',
+      });
+    },
+
+    listCashbackWithdrawalNotas(id: string, query: { startDate: string; endDate: string }) {
+      return request<AuditNotaFiscal[]>(`/admin/painel/cashback/withdrawals/${id}/notas`, { query });
+    },
+
+    markCashbackWithdrawalPaid(id: string, payload: { notes?: string; file: File }) {
+      const form = new FormData();
+      if (payload.notes) form.append('notes', payload.notes);
+      form.append('file', payload.file);
+
+      return requestFormData<CashbackWithdrawal>(`/admin/painel/cashback/withdrawals/${id}/mark-paid`, {
+        method: 'POST',
+        body: form,
+      });
+    },
+
+    rejectCashbackWithdrawal(id: string, payload: { notes?: string }) {
+      return request<CashbackWithdrawal>(`/admin/painel/cashback/withdrawals/${id}/reject`, {
+        method: 'PATCH',
+        body: payload,
+      });
+    },
+
+    listCashbackCoupons(query: { search?: string }) {
+      return request<CashbackCoupon[]>('/admin/painel/cashback/coupons', { query });
+    },
+
+    listCashbackPrizeCampaigns() {
+      return request<CashbackPrizeCampaign[]>('/admin/painel/cashback/prize-campaigns');
+    },
+
+    createCashbackPrizeCampaign(payload: { title: string; subtitle: string; notes?: string; isActive?: boolean; file?: File }) {
+      const form = new FormData();
+      form.append('title', payload.title);
+      form.append('subtitle', payload.subtitle);
+      if (payload.notes) form.append('notes', payload.notes);
+      if (payload.isActive !== undefined) form.append('isActive', String(payload.isActive));
+      if (payload.file) form.append('file', payload.file);
+
+      return requestFormData<CashbackPrizeCampaign>('/admin/painel/cashback/prize-campaigns', {
+        method: 'POST',
+        body: form,
+      });
+    },
+
+    publishCashbackPrizeWinner(id: string, payload: { couponCode: string; notes?: string }) {
+      return request<CashbackPrizeCampaign>(`/admin/painel/cashback/prize-campaigns/${id}/publish-winner`, {
+        method: 'POST',
+        body: payload,
+      });
     },
 
     listSupportTickets(query: { status?: SupportTicketStatus; search?: string }) {

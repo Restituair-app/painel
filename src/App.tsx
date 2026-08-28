@@ -10,6 +10,7 @@ import { AuditTicketsPage } from './pages/AuditTicketsPage';
 import { SupportTicketsPage } from './pages/SupportTicketsPage';
 import { UsersPage } from './pages/UsersPage';
 import { PaymentsPage } from './pages/PaymentsPage';
+import { CashbackPage } from './pages/CashbackPage';
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="auditorias" element={<AuditTicketsPage />} />
         <Route path="suporte" element={<SupportTicketsPage />} />
         <Route path="pagamentos" element={<PaymentsPage />} />
+        <Route path="cashback" element={<CashbackPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/painel" replace />} />
     </Routes>

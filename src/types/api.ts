@@ -293,6 +293,64 @@ export type BillingWebhookLog = {
   updatedAt: string;
 };
 
+export type CashbackWithdrawalStatus = 'pendente' | 'em_analise' | 'pagamento_realizado' | 'rejeitado';
+export type CashbackCouponStatus = 'ativo' | 'sorteado' | 'expirado';
+
+export type CashbackWithdrawal = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName?: string | null;
+  amountCents: number;
+  pixKey: string;
+  status: CashbackWithdrawalStatus;
+  requestedAt: string;
+  analysisStartedAt?: string | null;
+  paidAt?: string | null;
+  rejectedAt?: string | null;
+  handledBy?: string | null;
+  proofUrl?: string | null;
+  proofKey?: string | null;
+  proofFileName?: string | null;
+  proofMimeType?: string | null;
+  proofSize?: number | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  expiresInSeconds?: number | null;
+};
+
+export type CashbackCoupon = {
+  id: string;
+  code: string;
+  userId: string;
+  userEmail: string;
+  userName?: string | null;
+  amountCents: number;
+  status: CashbackCouponStatus;
+  drawnAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CashbackPrizeCampaign = {
+  id: string;
+  title: string;
+  subtitle: string;
+  bannerUrl?: string | null;
+  bannerKey?: string | null;
+  isActive: boolean;
+  winningCouponCode?: string | null;
+  winnerUserId?: string | null;
+  winnerUserEmail?: string | null;
+  winnerUserName?: string | null;
+  drawnAt?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  expiresInSeconds?: number | null;
+};
+
 export type PaginatedResponse<T> = {
   items: T[];
   total: number;
