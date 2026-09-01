@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Download, Eye, Gift, PlayCircle, RefreshCcw, Search, Ticket, Trophy, Wallet, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, Eye, Gift, Pencil, PlayCircle, RefreshCcw, Search, Ticket, Trash2, Trophy, Wallet, XCircle } from 'lucide-react';
 
 import { api } from '../api/client';
 import { formatCurrencyBRL, formatDateBR } from '../lib/format';
@@ -62,6 +62,7 @@ export function CashbackPage() {
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [campaignForm, setCampaignForm] = useState({ title: '', subtitle: '', notes: '', isActive: true });
   const [campaignFile, setCampaignFile] = useState<File | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState<CashbackPrizeCampaign | null>(null);
   const [winnerByCampaign, setWinnerByCampaign] = useState<Record<string, string>>({});
 
   const withdrawalsQuery = useQuery({
@@ -139,13 +140,34 @@ export function CashbackPage() {
   });
 
   const createCampaignMutation = useMutation({
-    mutationFn: () => api.admin.createCashbackPrizeCampaign({ ...campaignForm, file: campaignFile || undefined }),
+    mutationFn: () => {
+      const payload = { ...campaignForm, file: campaignFile || undefined };
+      return editingCampaign
+        ? api.admin.updateCashbackPrizeCampaign(editingCampaign.id, payload)
+        : api.admin.createCashbackPrizeCampaign(payload);
+    },
     onSuccess: () => {
       setCampaignForm({ title: '', subtitle: '', notes: '', isActive: true });
       setCampaignFile(null);
+      setEditingCampaign(null);
       queryClient.invalidateQueries({ queryKey: ['admin-cashback-prize-campaigns'] });
+      window.alert(editingCampaign ? 'Campanha atualizada com sucesso.' : 'Campanha criada com sucesso.');
     },
-    onError: (error) => window.alert(toErrorMessage(error, 'Não foi possível criar a campanha.')),
+    onError: (error) => window.alert(toErrorMessage(error, 'Não foi possível salvar a campanha.')),
+  });
+
+  const deleteCampaignMutation = useMutation({
+    mutationFn: (id: string) => api.admin.deleteCashbackPrizeCampaign(id),
+    onSuccess: () => {
+      if (editingCampaign) {
+        setCampaignForm({ title: '', subtitle: '', notes: '', isActive: true });
+        setCampaignFile(null);
+        setEditingCampaign(null);
+      }
+      queryClient.invalidateQueries({ queryKey: ['admin-cashback-prize-campaigns'] });
+      window.alert('Campanha removida com sucesso.');
+    },
+    onError: (error) => window.alert(toErrorMessage(error, 'Não foi possível remover a campanha.')),
   });
 
   const publishWinnerMutation = useMutation({
@@ -220,6 +242,24 @@ export function CashbackPage() {
       return;
     }
     createCampaignMutation.mutate();
+  };
+
+  const startEditCampaign = (campaign: CashbackPrizeCampaign) => {
+    setEditingCampaign(campaign);
+    setCampaignForm({
+      title: campaign.title,
+      subtitle: campaign.subtitle,
+      notes: campaign.notes || '',
+      isActive: campaign.isActive,
+    });
+    setCampaignFile(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEditCampaign = () => {
+    setEditingCampaign(null);
+    setCampaignForm({ title: '', subtitle: '', notes: '', isActive: true });
+    setCampaignFile(null);
   };
 
   const renderAttachmentActions = (label: string, url?: string | null) => {
@@ -439,13 +479,16 @@ export function CashbackPage() {
       {activeTab === 'prizes' ? (
         <section className="cashback-prizes-layout">
           <form className="card cashback-prize-form" onSubmit={handleCreateCampaign}>
-            <header className="card-header"><h2><Trophy size={16} /> Nova campanha</h2></header>
+            <header className="card-header">
+              <h2><Trophy size={16} /> {editingCampaign ? 'Editar campanha' : 'Nova campanha'}</h2>
+              {editingCampaign ? <button type="button" className="btn btn-outline" onClick={cancelEditCampaign}>Cancelar edição</button> : null}
+            </header>
             <label className="form-field"><span>Título</span><input value={campaignForm.title} onChange={(event) => setCampaignForm({ ...campaignForm, title: event.target.value })} placeholder="Sorteio Restitua" /></label>
             <label className="form-field"><span>Subtítulo</span><input value={campaignForm.subtitle} onChange={(event) => setCampaignForm({ ...campaignForm, subtitle: event.target.value })} placeholder="Acumule cupons e concorra" /></label>
             <label className="form-field"><span>Observações</span><textarea value={campaignForm.notes} onChange={(event) => setCampaignForm({ ...campaignForm, notes: event.target.value })} placeholder="Regulamento resumido ou observação interna." /></label>
             <label className="checkbox-line"><input type="checkbox" checked={campaignForm.isActive} onChange={(event) => setCampaignForm({ ...campaignForm, isActive: event.target.checked })} /> Publicar como campanha ativa</label>
-            <label className="form-field legal-file-field"><span>Banner/flyer</span><input type="file" onChange={handleCampaignFileChange} accept=".jpg,.jpeg,.png,.webp,.heic" /><small className="muted-text">Imagem até 10 MB.</small></label>
-            <button className="btn btn-primary" disabled={createCampaignMutation.isPending}>{createCampaignMutation.isPending ? 'Criando...' : 'Criar campanha'}</button>
+            <label className="form-field legal-file-field"><span>{editingCampaign ? 'Novo banner/flyer (opcional)' : 'Banner/flyer'}</span><input type="file" onChange={handleCampaignFileChange} accept=".jpg,.jpeg,.png,.webp,.heic" /><small className="muted-text">Imagem até 10 MB.</small></label>
+            <button className="btn btn-primary" disabled={createCampaignMutation.isPending}>{createCampaignMutation.isPending ? 'Salvando...' : editingCampaign ? 'Salvar alterações' : 'Criar campanha'}</button>
           </form>
 
           <div className="cashback-campaign-list">
@@ -458,9 +501,26 @@ export function CashbackPage() {
                     <span className={`pill ${campaign.isActive ? 'pill-success' : 'pill-user'}`}>{campaign.isActive ? 'Ativa' : 'Inativa'}</span>
                   </div>
                   {campaign.winningCouponCode ? <p className="muted-text small">Cupom sorteado: <strong>{campaign.winningCouponCode}</strong> • {campaign.winnerUserEmail}</p> : null}
+                  <div className="actions-inline legal-model-actions">
+                    <button type="button" className="btn btn-secondary" onClick={() => startEditCampaign(campaign)}>
+                      <Pencil size={16} /> Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      disabled={deleteCampaignMutation.isPending}
+                      onClick={() => {
+                        if (window.confirm('Remover esta campanha de prêmio?')) {
+                          deleteCampaignMutation.mutate(campaign.id);
+                        }
+                      }}
+                    >
+                      <Trash2 size={16} /> Remover
+                    </button>
+                  </div>
                   <div className="reviews-filters cashback-winner-row">
                     <label className="form-field compact-field"><span>Cupom vencedor</span><input value={winnerByCampaign[campaign.id] || ''} onChange={(event) => setWinnerByCampaign({ ...winnerByCampaign, [campaign.id]: event.target.value.toUpperCase() })} placeholder="RST-2026-XXXX" /></label>
-                    <button className="btn btn-primary" disabled={!winnerByCampaign[campaign.id] || publishWinnerMutation.isPending} onClick={() => publishWinnerMutation.mutate({ campaignId: campaign.id, couponCode: winnerByCampaign[campaign.id] })}><Trophy size={16} /> Publicar sorteado</button>
+                    <button type="button" className="btn btn-primary" disabled={!winnerByCampaign[campaign.id] || publishWinnerMutation.isPending} onClick={() => publishWinnerMutation.mutate({ campaignId: campaign.id, couponCode: winnerByCampaign[campaign.id] })}><Trophy size={16} /> Publicar sorteado</button>
                   </div>
                 </div>
               </article>

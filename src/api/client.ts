@@ -268,6 +268,26 @@ export const api = {
       });
     },
 
+    updateCashbackPrizeCampaign(id: string, payload: { title: string; subtitle: string; notes?: string; isActive?: boolean; file?: File }) {
+      const form = new FormData();
+      form.append('title', payload.title);
+      form.append('subtitle', payload.subtitle);
+      if (payload.notes) form.append('notes', payload.notes);
+      if (payload.isActive !== undefined) form.append('isActive', String(payload.isActive));
+      if (payload.file) form.append('file', payload.file);
+
+      return requestFormData<CashbackPrizeCampaign>(`/admin/painel/cashback/prize-campaigns/${id}`, {
+        method: 'PATCH',
+        body: form,
+      });
+    },
+
+    deleteCashbackPrizeCampaign(id: string) {
+      return request<{ success: boolean }>(`/admin/painel/cashback/prize-campaigns/${id}`, {
+        method: 'DELETE',
+      });
+    },
+
     publishCashbackPrizeWinner(id: string, payload: { couponCode: string; notes?: string }) {
       return request<CashbackPrizeCampaign>(`/admin/painel/cashback/prize-campaigns/${id}/publish-winner`, {
         method: 'POST',
