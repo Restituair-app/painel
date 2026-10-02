@@ -357,3 +357,72 @@ export type PaginatedResponse<T> = {
   page: number;
   limit: number;
 };
+
+export type RefundAdvanceStatus =
+  | 'enviada'
+  | 'em_analise'
+  | 'documentacao_pendente'
+  | 'proposta_disponivel'
+  | 'aguardando_assinatura'
+  | 'aguardando_cartao'
+  | 'revisao_final'
+  | 'aprovada'
+  | 'pix_realizado'
+  | 'em_pagamento'
+  | 'quitada'
+  | 'rejeitada'
+  | 'cancelada';
+
+export type RefundAdvanceModel = {
+  id: string;
+  title: string;
+  description: string;
+  type: 'contract' | 'promissory_note';
+  fileUrl: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  version: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RefundAdvanceDocument = {
+  id: string;
+  type: string;
+  label: string;
+  fileUrl: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+  uploadedBy: string;
+};
+
+export type RefundAdvanceRequest = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName?: string | null;
+  userCpf?: string | null;
+  planAtRequest: 'basic' | 'premium';
+  status: RefundAdvanceStatus;
+  guaranteeType: 'guarantor' | 'surety_insurance';
+  notes?: string | null;
+  pendingDocumentMessage?: string | null;
+  documents: RefundAdvanceDocument[];
+  timeline: Array<{ id: string; status: RefundAdvanceStatus; title: string; description?: string | null; occurredAt: string; actor: string }>;
+  advanceAmountCents?: number | null;
+  installmentCount?: number | null;
+  installmentAmountCents?: number | null;
+  totalAmountCents?: number | null;
+  firstDueDate?: string | null;
+  proposalNotes?: string | null;
+  paymentStatus?: string | null;
+  pixProofUrl?: string | null;
+  pixProofFileName?: string | null;
+  rejectionReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

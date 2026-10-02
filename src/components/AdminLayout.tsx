@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { BarChart3, CreditCard, FileSearch, FileText, LogOut, MessageCircle, MessageSquareText, Ticket, Users } from 'lucide-react';
+import { BarChart3, CreditCard, FileSearch, FileText, Landmark, LogOut, MessageCircle, MessageSquareText, Ticket, Users } from 'lucide-react';
 
 import { api } from '../api/client';
 
@@ -12,6 +12,7 @@ const navItems = [
   { to: '/painel/suporte', label: 'Suporte', icon: MessageCircle },
   { to: '/painel/pagamentos', label: 'Pagamentos', icon: CreditCard },
   { to: '/painel/cashback', label: 'Cashback', icon: Ticket },
+  { to: '/painel/antecipacoes', label: 'Antecipações', icon: Landmark },
 ];
 
 export function AdminLayout() {

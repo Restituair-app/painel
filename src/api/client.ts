@@ -20,6 +20,9 @@ import type {
   SupportTicket,
   SupportTicketStatus,
   PaginatedResponse,
+  RefundAdvanceModel,
+  RefundAdvanceRequest,
+  RefundAdvanceStatus,
   UsersListResponse,
 } from '../types/api';
 import { clearTokens, request, requestBlob, requestFormData, setTokens } from './http';
@@ -314,6 +317,75 @@ export const api = {
       return request<SupportTicket>(`/admin/painel/support-tickets/${id}/finalize`, {
         method: 'PATCH',
       });
+    },
+
+    listRefundAdvanceRequests(query: { status?: RefundAdvanceStatus; search?: string }) {
+      return request<RefundAdvanceRequest[]>('/admin/painel/refund-advance/requests', { query });
+    },
+
+    getRefundAdvanceRequest(id: string) {
+      return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}`);
+    },
+
+    startRefundAdvanceAnalysis(id: string) {
+      return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/start-analysis`, { method: 'PATCH' });
+    },
+
+    requestRefundAdvanceDocuments(id: string, message: string) {
+      return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/request-documents`, {
+        method: 'PATCH', body: { message },
+      });
+    },
+
+    setRefundAdvanceProposal(id: string, payload: { advanceAmountCents: number; installmentCount: number; installmentAmountCents: number; totalAmountCents: number; firstDueDate: string; notes?: string }) {
+      return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/proposal`, {
+        method: 'PATCH', body: payload,
+      });
+    },
+
+    approveRefundAdvance(id: string) {
+      return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/approve`, { method: 'PATCH' });
+    },
+
+    rejectRefundAdvance(id: string, reason: string) {
+      return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/reject`, {
+        method: 'PATCH', body: { reason },
+      });
+    },
+
+    markRefundAdvancePixPaid(id: string, file: File) {
+      const form = new FormData();
+      form.append('file', file);
+      return requestFormData<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/mark-pix-paid`, {
+        method: 'POST', body: form,
+      });
+    },
+
+    listRefundAdvanceModels() {
+      return request<RefundAdvanceModel[]>('/admin/painel/refund-advance/models');
+    },
+
+    createRefundAdvanceModel(payload: { title: string; description: string; type: RefundAdvanceModel['type']; file: File }) {
+      const form = new FormData();
+      form.append('title', payload.title);
+      form.append('description', payload.description);
+      form.append('type', payload.type);
+      form.append('file', payload.file);
+      return requestFormData<RefundAdvanceModel>('/admin/painel/refund-advance/models', { method: 'POST', body: form });
+    },
+
+    updateRefundAdvanceModel(id: string, payload: { title: string; description: string; type: RefundAdvanceModel['type']; isActive: boolean; file?: File | null }) {
+      const form = new FormData();
+      form.append('title', payload.title);
+      form.append('description', payload.description);
+      form.append('type', payload.type);
+      form.append('isActive', String(payload.isActive));
+      if (payload.file) form.append('file', payload.file);
+      return requestFormData<RefundAdvanceModel>(`/admin/painel/refund-advance/models/${id}`, { method: 'PATCH', body: form });
+    },
+
+    deleteRefundAdvanceModel(id: string) {
+      return request<{ success: boolean }>(`/admin/painel/refund-advance/models/${id}`, { method: 'DELETE' });
     },
   },
 };

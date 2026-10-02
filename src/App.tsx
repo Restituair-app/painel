@@ -11,6 +11,7 @@ import { SupportTicketsPage } from './pages/SupportTicketsPage';
 import { UsersPage } from './pages/UsersPage';
 import { PaymentsPage } from './pages/PaymentsPage';
 import { CashbackPage } from './pages/CashbackPage';
+import { RefundAdvancePage } from './pages/RefundAdvancePage';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="suporte" element={<SupportTicketsPage />} />
         <Route path="pagamentos" element={<PaymentsPage />} />
         <Route path="cashback" element={<CashbackPage />} />
+        <Route path="antecipacoes" element={<RefundAdvancePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/painel" replace />} />
     </Routes>
