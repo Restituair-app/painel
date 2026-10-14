@@ -1049,6 +1049,9 @@ p {
 .advance-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
 .advance-summary span { display: grid; gap: 4px; padding: 13px; border-radius: 12px; background: var(--surface-muted); color: var(--muted); }
 .advance-summary strong { color: var(--text); }
+.advance-registration-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.advance-registration-grid span { display: grid; gap: 3px; padding: 11px; border: 1px solid var(--border); border-radius: 11px; }
+.advance-registration-grid small { color: var(--muted); }
 .advance-timeline { display: grid; gap: 14px; }
 .advance-timeline > div { display: flex; gap: 10px; }
 .advance-timeline > div > span { width: 9px; height: 9px; margin-top: 5px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
@@ -1058,7 +1061,7 @@ p {
 @media (max-width: 760px) {
   .advance-tabs, .advance-tabs button { width: 100%; }
   .advance-tabs button { justify-content: center; }
-  .advance-documents, .advance-proposal-grid, .advance-summary { grid-template-columns: 1fr; }
+  .advance-documents, .advance-proposal-grid, .advance-summary, .advance-registration-grid { grid-template-columns: 1fr; }
 }
 
 .pill-success {

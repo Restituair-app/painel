@@ -18,7 +18,7 @@ const statusClass = (status: RefundAdvanceStatus) => status === 'rejeitada' || s
 const money = (cents?: number | null) => formatCurrencyBRL((cents ?? 0) / 100);
 const errorMessage = (error: unknown, fallback: string) => typeof error === 'object' && error && 'message' in error && typeof error.message === 'string' ? error.message : fallback;
 
-type ModelForm = { title: string; description: string; type: 'contract' | 'promissory_note'; isActive: boolean; file: File | null };
+type ModelForm = { title: string; description: string; type: 'contract' | 'promissory_note' | 'general_rules'; isActive: boolean; file: File | null };
 const emptyModel: ModelForm = { title: '', description: '', type: 'contract', isActive: true, file: null };
 
 export function RefundAdvancePage() {
@@ -30,6 +30,7 @@ export function RefundAdvancePage() {
   const [documentMessage, setDocumentMessage] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [pixProof, setPixProof] = useState<File | null>(null);
+  const [adminDocumentFile, setAdminDocumentFile] = useState<File | null>(null);
   const [proposal, setProposal] = useState({ advance: '', installments: '', installmentAmount: '', total: '', firstDueDate: '', notes: '' });
   const [modelForm, setModelForm] = useState<ModelForm>(emptyModel);
   const [editingModel, setEditingModel] = useState<RefundAdvanceModel | null>(null);
@@ -51,7 +52,7 @@ export function RefundAdvancePage() {
     queryClient.invalidateQueries({ queryKey: ['refund-advance-admin-detail', request.id] });
   };
   const action = useMutation({
-    mutationFn: async ({ kind, id }: { kind: 'start' | 'documents' | 'proposal' | 'approve' | 'reject' | 'pix'; id: string }) => {
+    mutationFn: async ({ kind, id }: { kind: 'start' | 'documents' | 'proposal' | 'approve' | 'validate' | 'reject' | 'pix'; id: string }) => {
       if (kind === 'start') return api.admin.startRefundAdvanceAnalysis(id);
       if (kind === 'documents') {
         if (!documentMessage.trim()) throw new Error('Informe quais documentos são necessários.');
@@ -69,6 +70,7 @@ export function RefundAdvancePage() {
         });
       }
       if (kind === 'approve') return api.admin.approveRefundAdvance(id);
+      if (kind === 'validate') return api.admin.validateRefundAdvanceSignatures(id);
       if (kind === 'reject') {
         if (!rejectionReason.trim()) throw new Error('Informe o motivo da rejeição.');
         return api.admin.rejectRefundAdvance(id, rejectionReason.trim());
@@ -78,6 +80,18 @@ export function RefundAdvancePage() {
     },
     onSuccess: (request) => { refreshRequest(request); setDocumentMessage(''); setRejectionReason(''); setPixProof(null); window.alert('Solicitação atualizada.'); },
     onError: (error) => window.alert(errorMessage(error, 'Não foi possível atualizar a solicitação.')),
+  });
+  const uploadAdminDocument = useMutation({
+    mutationFn: () => {
+      if (!active || !adminDocumentFile) throw new Error('Selecione o arquivo.');
+      return api.admin.uploadRefundAdvanceDocument(active.id, {
+        type: 'company_signed_contract',
+        label: 'Contrato assinado pela empresa',
+        file: adminDocumentFile,
+      });
+    },
+    onSuccess: (request) => { refreshRequest(request); setAdminDocumentFile(null); window.alert('Documento anexado.'); },
+    onError: (error) => window.alert(errorMessage(error, 'Não foi possível anexar o documento.')),
   });
 
   const saveModel = useMutation({
@@ -144,6 +158,13 @@ export function RefundAdvancePage() {
 
               <section className="advance-section"><h3>Documentos enviados</h3><div className="advance-documents">{active.documents.map((document) => <a key={document.id} href={document.fileUrl} target="_blank" rel="noreferrer" className="advance-document"><FileSignature size={17} /><span><strong>{document.label}</strong><small>{document.fileName}</small></span><Eye size={15} /></a>)}</div>{!active.documents.length ? <p className="muted-text small">Nenhum documento enviado.</p> : null}</section>
 
+              <section className="advance-section"><h3>Formulário de cadastro</h3><div className="advance-registration-grid">
+                <span><small>Nome completo</small><strong>{active.fullName || '-'}</strong></span><span><small>CPF</small><strong>{active.registrationCpf || '-'}</strong></span><span><small>RG</small><strong>{active.rg || '-'}</strong></span><span><small>Nascimento</small><strong>{active.birthDate || '-'}</strong></span><span><small>Endereço</small><strong>{active.fullAddress || '-'}</strong></span><span><small>Cidade/estado</small><strong>{active.cityState || '-'}</strong></span><span><small>Chave Pix</small><strong>{active.pixKey || '-'}</strong></span>
+                {active.guaranteeType === 'guarantor' ? <><span><small>Fiador</small><strong>{active.guarantorName || '-'}</strong></span><span><small>CPF do fiador</small><strong>{active.guarantorCpf || '-'}</strong></span><span><small>RG do fiador</small><strong>{active.guarantorRg || '-'}</strong></span><span><small>Nascimento do fiador</small><strong>{active.guarantorBirthDate || '-'}</strong></span><span><small>Endereço do fiador</small><strong>{active.guarantorFullAddress || '-'}</strong></span><span><small>Cidade/estado do fiador</small><strong>{active.guarantorCityState || '-'}</strong></span></> : null}
+              </div></section>
+
+              <section className="advance-section"><h3>Formalização</h3><p className="muted-text small">O contrato e a nota promissória são gerados automaticamente quando o cliente aceita a proposta. Depois da assinatura das partes, anexe abaixo a versão final assinada pela empresa.</p><label className="form-field"><span>Contrato assinado pela empresa</span><input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={(event) => chooseFile(event, setAdminDocumentFile)} /></label><div className="audit-actions-row"><button className="btn btn-outline" disabled={!adminDocumentFile || uploadAdminDocument.isPending} onClick={() => uploadAdminDocument.mutate()}><Upload size={16} /> Anexar contrato assinado</button><button className="btn btn-primary" disabled={active.status !== 'aguardando_assinatura' || action.isPending} onClick={() => action.mutate({ kind: 'validate', id: active.id })}><CheckCircle2 size={16} /> Validar assinaturas e liberar cartão</button></div></section>
+
               <section className="advance-section"><h3>Solicitar documentação</h3><textarea value={documentMessage} onChange={(event) => setDocumentMessage(event.target.value)} placeholder="Descreva os documentos que faltam" /><button className="btn btn-outline" disabled={action.isPending} onClick={() => action.mutate({ kind: 'documents', id: active.id })}><Upload size={16} /> Solicitar documentos</button></section>
 
               <section className="advance-section"><h3>Proposta financeira</h3><div className="advance-proposal-grid">
@@ -164,14 +185,14 @@ export function RefundAdvancePage() {
       </> : <>
         <section className="card legal-model-form-card"><div className="card-header"><h2><Plus size={17} /> {editingModel ? 'Editar modelo' : 'Novo modelo'}</h2>{editingModel ? <button className="btn btn-outline" onClick={() => { setEditingModel(null); setModelForm(emptyModel); }}>Cancelar</button> : null}</div>
           <form className="legal-model-form" onSubmit={(event: FormEvent) => { event.preventDefault(); saveModel.mutate(); }}>
-            <div className="advance-proposal-grid"><label className="form-field"><span>Título</span><input value={modelForm.title} onChange={(e) => setModelForm((v) => ({ ...v, title: e.target.value }))} /></label><label className="form-field"><span>Tipo</span><select value={modelForm.type} onChange={(e) => setModelForm((v) => ({ ...v, type: e.target.value as ModelForm['type'] }))}><option value="contract">Contrato</option><option value="promissory_note">Nota promissória</option></select></label></div>
+            <div className="advance-proposal-grid"><label className="form-field"><span>Título</span><input value={modelForm.title} onChange={(e) => setModelForm((v) => ({ ...v, title: e.target.value }))} /></label><label className="form-field"><span>Tipo</span><select value={modelForm.type} onChange={(e) => setModelForm((v) => ({ ...v, type: e.target.value as ModelForm['type'] }))}><option value="contract">Contrato</option><option value="promissory_note">Nota promissória</option><option value="general_rules">Regras gerais</option></select></label></div>
             <label className="form-field"><span>Descrição</span><textarea value={modelForm.description} onChange={(e) => setModelForm((v) => ({ ...v, description: e.target.value }))} /></label>
             <label className="form-field"><span>{editingModel ? 'Substituir arquivo (opcional)' : 'Arquivo'}</span><input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={(e) => chooseFile(e, (file) => setModelForm((v) => ({ ...v, file })))} /></label>
             {editingModel ? <label className="checkbox-line"><input type="checkbox" checked={modelForm.isActive} onChange={(e) => setModelForm((v) => ({ ...v, isActive: e.target.checked }))} /> Disponível para usuários</label> : null}
             <button className="btn btn-primary" disabled={saveModel.isPending}><FileSignature size={16} /> Salvar modelo</button>
           </form>
         </section>
-        <section className="legal-models-grid">{(modelsQuery.data ?? []).map((model) => <article className={`card legal-model-card${model.isActive ? '' : ' legal-model-card-disabled'}`} key={model.id}><header className="legal-model-card-header"><div className="legal-model-icon"><FileSignature size={20} /></div><div><h2>{model.title}</h2><p className="muted-text small">{model.type === 'contract' ? 'Contrato' : 'Nota promissória'} · versão {model.version}</p></div><span className={`pill ${model.isActive ? 'pill-success' : 'pill-admin'}`}>{model.isActive ? 'Ativo' : 'Inativo'}</span></header><p>{model.description}</p><div className="actions-inline legal-model-actions"><a className="btn btn-outline" href={model.fileUrl} target="_blank" rel="noreferrer"><Eye size={16} /> Ver</a><a className="btn btn-outline" href={model.fileUrl} download><Download size={16} /> Baixar</a><button className="btn btn-secondary" onClick={() => { setEditingModel(model); setModelForm({ title: model.title, description: model.description, type: model.type, isActive: model.isActive, file: null }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Pencil size={16} /> Editar</button><button className="btn btn-danger" onClick={() => window.confirm('Excluir este modelo?') && deleteModel.mutate(model.id)}><Trash2 size={16} /> Excluir</button></div></article>)}</section>
+        <section className="legal-models-grid">{(modelsQuery.data ?? []).map((model) => <article className={`card legal-model-card${model.isActive ? '' : ' legal-model-card-disabled'}`} key={model.id}><header className="legal-model-card-header"><div className="legal-model-icon"><FileSignature size={20} /></div><div><h2>{model.title}</h2><p className="muted-text small">{model.type === 'contract' ? 'Contrato' : model.type === 'promissory_note' ? 'Nota promissória' : 'Regras gerais'} · versão {model.version}</p></div><span className={`pill ${model.isActive ? 'pill-success' : 'pill-admin'}`}>{model.isActive ? 'Ativo' : 'Inativo'}</span></header><p>{model.description}</p><div className="actions-inline legal-model-actions"><a className="btn btn-outline" href={model.fileUrl} target="_blank" rel="noreferrer"><Eye size={16} /> Ver</a><a className="btn btn-outline" href={model.fileUrl} download><Download size={16} /> Baixar</a><button className="btn btn-secondary" onClick={() => { setEditingModel(model); setModelForm({ title: model.title, description: model.description, type: model.type, isActive: model.isActive, file: null }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Pencil size={16} /> Editar</button><button className="btn btn-danger" onClick={() => window.confirm('Excluir este modelo?') && deleteModel.mutate(model.id)}><Trash2 size={16} /> Excluir</button></div></article>)}</section>
       </>}
     </div>
   );

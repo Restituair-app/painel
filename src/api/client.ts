@@ -347,6 +347,18 @@ export const api = {
       return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/approve`, { method: 'PATCH' });
     },
 
+    validateRefundAdvanceSignatures(id: string) {
+      return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/validate-signatures`, { method: 'PATCH' });
+    },
+
+    uploadRefundAdvanceDocument(id: string, payload: { type: 'prepared_contract' | 'prepared_promissory_note' | 'company_signed_contract'; label: string; file: File }) {
+      const form = new FormData();
+      form.append('type', payload.type);
+      form.append('label', payload.label);
+      form.append('file', payload.file);
+      return requestFormData<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/documents`, { method: 'POST', body: form });
+    },
+
     rejectRefundAdvance(id: string, reason: string) {
       return request<RefundAdvanceRequest>(`/admin/painel/refund-advance/requests/${id}/reject`, {
         method: 'PATCH', body: { reason },
