@@ -413,6 +413,7 @@ export type RefundAdvanceRequest = {
   registrationCpf?: string | null;
   rg?: string | null;
   birthDate?: string | null;
+  postalCode?: string | null;
   fullAddress?: string | null;
   cityState?: string | null;
   pixKey?: string | null;
@@ -420,6 +421,7 @@ export type RefundAdvanceRequest = {
   guarantorCpf?: string | null;
   guarantorRg?: string | null;
   guarantorBirthDate?: string | null;
+  guarantorPostalCode?: string | null;
   guarantorFullAddress?: string | null;
   guarantorCityState?: string | null;
   registrationCompletedAt?: string | null;
